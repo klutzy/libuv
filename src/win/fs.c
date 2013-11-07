@@ -738,7 +738,14 @@ void fs__readdir(uv_fs_t* req) {
     uv_fatal_error(ERROR_OUTOFMEMORY, "malloc");
   }
 
-#ifdef _CRT_NON_CONFORMING_SWPRINTFS
+/* _CRT_NON_CONFORMING_SWPRINTFS indicates header to provide old swprintf
+ * (pre-msvc2005) which has different function signature.
+ * However, mingw doesn't support new one thus provides old non-conforming
+ * function regardless of macro.
+ * Therefore we stick to old one on mingw. (mingw-w64 support both)
+ */
+#if defined(_CRT_NON_CONFORMING_SWPRINTFS) || \
+    (defined(__MINGW32_MAJOR_VERSION) && !defined(__MINGW64_VERSION_MAJOR))
   swprintf(path2, fmt, pathw);
 #else
   swprintf(path2, len + 3, fmt, pathw);
